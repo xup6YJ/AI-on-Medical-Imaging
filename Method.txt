@@ -1,0 +1,10 @@
+Computed Tomography
+-size: 512*512*(100~250 slices)
+
+1. DICOM file(.mhd, .raw), seriesUID as key (module SimpleITK, import SimpleITK as sitk)
+2. Initial XYZ coordinate system to voxel wise IRC coordinate system
+3. Getting middle IRC of lesion(xyz2irc) ( SimpleITK, TransformIndexToPhysicalPoint(), TransformPhysicalPointsToIndex() )
+-IRC2XYZ: IRC -> CRI(XYZ), adjust by size of voxel, @ with direction matrix, add the bias of (0,0)
+4. Slicing a chunck of 3D tensor from CT by middle IRC of lesion(Check for the index out from original size of CT)
+5. Removing outliers from ct chunck (from scale -1000HU~1000HU for example)
+6. Build an annotation dictionary
