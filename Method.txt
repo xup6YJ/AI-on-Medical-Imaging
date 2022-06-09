@@ -1,7 +1,11 @@
 Computed Tomography
 -size: 512*512*(100~250 slices)
 
-Preprocessing
+Convolution Concept
+-3*3 conv for dim-2
+-pooling for dim/2
+
+#Preprocessing
 1. DICOM file(.mhd, .raw), seriesUID as key (module SimpleITK, import SimpleITK as sitk)
 2. Initial XYZ coordinate system to voxel wise IRC coordinate system
 3. Getting middle IRC of lesion(xyz2irc) ( SimpleITK, TransformIndexToPhysicalPoint(), TransformPhysicalPointsToIndex() )
@@ -12,13 +16,13 @@ Preprocessing
 7. For PyTorch, you should build def _len_ (constant) and _getitem_ (recieve an index and retuen a tuple) in class dataset.
 8. Build Training/ Validation dataset
 
-Classification
+#Classification
 -Training Loop/ Validation Loop:
 1.Data Augmentation (get CT chunck -> augmentation -> affine_grid -> grid sample) 
 2.Batch data training and predict
-3.Calculate Loss of the batch(could be calculate by cat. if data unbalanced) 
-4.Store the epoch performance(tensor label mask)
-5.Optimize the parameters by backpropagation(Training only)
+3.Calculate Loss of the batch (could be calculate by cat. if data unbalanced) 
+4.Store the epoch performance (tensor label mask)
+5.Optimize the parameters by backpropagation (Training only)
 
 -Modeling
 1.Build and initialize a model and optimizer
@@ -28,4 +32,11 @@ Writing Method
 1. By using command line arguments (module argparse)
 2. To set a ratio_int to control the ratio of N/P in batch (0 represent do not do balance)
 
+#Segmentation (Semantic segmentation)
+1.Prepare masks for lesions as label (1: Positive)
+2.Output of segmentation model will be a full image with annotation (To annotate every pixel from image, dim(input&output) are equal)
+3.Loss function (et. Dice loss, Recall)
+
+-Modeling
+1.Build and revise U-Net
 
