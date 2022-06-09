@@ -1,6 +1,7 @@
 Computed Tomography
 -size: 512*512*(100~250 slices)
 
+Preprocessing
 1. DICOM file(.mhd, .raw), seriesUID as key (module SimpleITK, import SimpleITK as sitk)
 2. Initial XYZ coordinate system to voxel wise IRC coordinate system
 3. Getting middle IRC of lesion(xyz2irc) ( SimpleITK, TransformIndexToPhysicalPoint(), TransformPhysicalPointsToIndex() )
@@ -8,3 +9,14 @@ Computed Tomography
 4. Slicing a chunck of 3D tensor from CT by middle IRC of lesion(Check for the index out from original size of CT)
 5. Removing outliers from ct chunck (from scale -1000HU~1000HU for example)
 6. Build an annotation dictionary
+7. For PyTorch, you should build def _len_ (constant) and _getitem_ (recieve an index and retuen a tuple) in class dataset.
+8. Build Training/ Validation dataset
+
+Classification
+-Training Loop/ Validation Loop:
+1.Batch data training and predict
+2.Calculate Loss
+3.Store the epoch performance
+4.Optimize the parameters by backpropagation(Training only)
+
+
