@@ -19,4 +19,9 @@ Classification
 3.Store the epoch performance
 4.Optimize the parameters by backpropagation(Training only)
 
+-Modeling
+1.Build and initialize a model and optimizer
+2.Produce dataset and DataLoader (5D torch.nn.Conv3d tensor, (N<batch>, C<channel>, D<depth>, H, W))
 
+Writing Method
+1. By using command line arguments (module argparse)
