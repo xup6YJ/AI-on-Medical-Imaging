@@ -13,31 +13,40 @@ Convolution Concept
 4. Slicing a chunck of 3D tensor from CT by middle IRC of lesion(Check for the index outside from original size of CT)
 5. Removing outliers from ct chunck (from scale -1000HU~1000HU for example)
 6. Build an annotation dictionary
-7. For PyTorch, you should build def _len_ (constant) and _getitem_ (recieve an index and retuen a tuple) in class dataset.
+7. Build def _len_ (constant) and _getitem_ (recieve an index and retuen a tuple) in class dataset.
 8. Build Training/ Validation dataset
 
 #Classification
--Training Loop/ Validation Loop:
-1.Data Augmentation (get CT chunck -> augmentation -> affine_grid -> grid sample) 
-2.Batch data training and predict
-3.Calculate Loss of the batch (could be calculate by cat. if data unbalanced) 
-4.Store the epoch performance (tensor label mask)
-5.Optimize the parameters by backpropagation (Training only)
-
 -Modeling
-1.Build and initialize a model and optimizer
-2.Produce dataset and DataLoader (5D torch.nn.Conv3d tensor, (N<batch>, C<channel>, D<depth>, H, W))
+1. Build and initialize a model and optimizer
+2. Produce dataset and DataLoader (5D torch.nn.Conv3d tensor, (N<batch>, C<channel>, D<depth>, H, W))
 
-Writing Method
+-Training Loop/ Validation Loop:
+1. Data Augmentation (get CT chunck -> augmentation -> affine_grid -> grid sample) 
+2. Batch data training and predict
+3. Calculate Loss of the batch (could be calculate by cat. if data unbalanced) 
+4. Store the epoch performance (tensor label mask)
+5. Optimize the parameters by backpropagation (Training only)
+
+-Writing Method
 1. By using command line arguments (module argparse)
 2. To set a ratio_int to control the ratio of N/P in batch (0 represent do not do balance)
 
 #Segmentation (Semantic segmentation)
-1.Prepare masks for lesions as label (1: Positive)
-2.Output of segmentation model will be a full image with annotation (To annotate every pixel from image, dim(input&output) are equal)
-3.Loss function (et. Dice loss, Recall)
+Prepare 2D slices of CT from axis Z
+1. Prepare masks for lesions as label (1: Positive), stop label from c if left/right density change(>-700 HU), r for up/down, index for z axis
+2. Output of segmentation model will be a full image with annotation (To annotate every pixel from image, dim(input&output) are equal)
+3. Loss function (et. Dice loss, Recall)
 
 -Modeling
-1.Build and revise U-Net
+1. Build and revise U-Net (BatchNorm2D -> UNet -> Sigmoid)
+2. Input of Original U-Net 572*572 -> 388*388
+
+-Training Loop/ Validation Loop:
+1. Training for only those CT slices which owns mask, validation for full CT slices
+2. 96*96 -random crop-> 64*64 from positive sample, and +3 (sample) -3 slices of CT from axis Z (total of 7)
+3. Middle of the chuncks [4/7] as the training label
+4. GPU data augmentation (remember to do augmentation at 0:1 axis)
+
 
 
