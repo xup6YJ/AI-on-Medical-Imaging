@@ -6,7 +6,7 @@ Preprocessing
 2. Initial XYZ coordinate system to voxel wise IRC coordinate system
 3. Getting middle IRC of lesion(xyz2irc) ( SimpleITK, TransformIndexToPhysicalPoint(), TransformPhysicalPointsToIndex() )
 -IRC2XYZ: IRC -> CRI(XYZ), adjust by size of voxel, @ with direction matrix, add the bias of (0,0)
-4. Slicing a chunck of 3D tensor from CT by middle IRC of lesion(Check for the index out from original size of CT)
+4. Slicing a chunck of 3D tensor from CT by middle IRC of lesion(Check for the index outside from original size of CT)
 5. Removing outliers from ct chunck (from scale -1000HU~1000HU for example)
 6. Build an annotation dictionary
 7. For PyTorch, you should build def _len_ (constant) and _getitem_ (recieve an index and retuen a tuple) in class dataset.
@@ -14,10 +14,11 @@ Preprocessing
 
 Classification
 -Training Loop/ Validation Loop:
-1.Batch data training and predict
-2.Calculate Loss
-3.Store the epoch performance
-4.Optimize the parameters by backpropagation(Training only)
+1.Data Augmentation (get CT chunck -> augmentation -> affine_grid -> grid sample) 
+2.Batch data training and predict
+3.Calculate Loss of the batch(could be calculate by cat. if data unbalanced) 
+4.Store the epoch performance(tensor label mask)
+5.Optimize the parameters by backpropagation(Training only)
 
 -Modeling
 1.Build and initialize a model and optimizer
@@ -25,3 +26,6 @@ Classification
 
 Writing Method
 1. By using command line arguments (module argparse)
+2. To set a ratio_int to control the ratio of N/P in batch (0 represent do not do balance)
+
+
