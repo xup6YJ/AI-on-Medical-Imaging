@@ -1,2 +1,2 @@
-# CT
-Deep Learning approach on Computed Tomography
+# Medical Image Analysis
+Deep Learning approach on Medical Image
