@@ -1,0 +1,1 @@
+path = '/home/yingchihlin/Documents/Code/AISD/train/0226134/CT.nii.gz'

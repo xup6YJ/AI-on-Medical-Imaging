@@ -1,0 +1,73 @@
+
+# for model
+model: DeepMedic
+in_channel: 1
+out_channel: 2
+init_ch: 32
+deconv: False
+weight_init: kaiming
+cr_cpt_path: 
+
+# for UNet3P
+reduce_ch: 64
+
+# for RUNet, R2UNet
+num_rcnn: 2
+t: 2
+
+# for classification guided module (multi-task)
+cgm: False
+cgm_weight: 0.2
+
+# for focal tversky loss
+ft_alpha: 0.7
+ft_beta: 0.3
+ft_gamma: 0.75
+
+# for unified focal loss
+uf_weight: 0.5
+uf_delta: 0.6
+uf_gamma: 0.2
+
+# for boundary loss
+bd_loss: False
+bd_loss_weight: 0.2
+
+# for training
+num_epochs: 100  #300
+batch_size: 5
+criterion: UnifiedFocalLoss
+lr: 0.001
+
+# for lr scheduler
+reduce_lr_on_plateau: True
+exponential_lr: False
+step_lr: False
+
+# for dataloader
+dataset: 
+cv: 1
+patch_x: 128
+patch_y: 128
+patch_z: 8
+patch_overlap_x: 0
+patch_overlap_y: 0
+patch_overlap_z: 2
+queue_length: 1000
+samples_per_volume: 8
+
+no_noisy: False
+curriculum: True
+
+continue_training: False
+continue_epoch:   
+continue_batch_done:   
+continue_cpt_path:   
+
+test_time_aug: False
+
+cpt_dir: DeepMedic.cpts
+log_dir: DeepMedic.logs
+
+task_name:  
+task_name_suffix: None   

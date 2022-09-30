@@ -1,0 +1,23 @@
+
+in_channel: 1 
+out_channel:  2 
+init_ch:  32 
+patch_x:  128 
+patch_y:  128 
+patch_z:  8 
+patch_overlap_x:  0 
+patch_overlap_y:  0 
+patch_overlap_z:  2 
+test_time_aug: False
+
+# dataset:  3-day_gt-1_5fold \
+# model:  Fuchigami \
+# cgm:  \
+# cv:  5 \
+
+#ckpt path
+cpt_path:  DeepMedic.cpts/DeepMedic20220930_1926_in1_out2_init32_UFL-w0.5-d0.6-g0.2_lr0.001_kaiming-init_100epochs_bs5_p128-128-8_o0-0-2_None_reduce-lr-on-plateau_currNone_cv1/cv1_epoch1_batch468_e1.cpt
+#image output path
+output_dir:  DeepMedic.results/DeepMedic20220930_1926_in1_out2_init32_UFL-w0.5-d0.6-g0.2_lr0.001_kaiming-init_100epochs_bs5_p128-128-8_o0-0-2_None_reduce-lr-on-plateau_currNone_cv1
+
+plot_image: False
