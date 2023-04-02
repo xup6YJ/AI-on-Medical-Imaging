@@ -163,7 +163,7 @@ if __name__ == '__main__':
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
 
-    model = EEGNet_2(args=args)
+    model = EEGNet(args=args)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=0.001)
     scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=10, threshold=1e-3, 
