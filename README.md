@@ -1,4 +1,4 @@
-# Medical Image Analysis
+# Artificial Intelligence on Medical Imaging
 Deep Learning approach on Medical Image
 
 Lab 1: Pneumonia Classification
