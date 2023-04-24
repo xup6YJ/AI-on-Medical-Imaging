@@ -252,6 +252,8 @@ class decoder(nn.Module):
         self.deconv3 = deconvblock(128, 128) # 128 + 
         self.conv3 = ConvRelu(in_channels = 256, out_channels = 64, kernel_size = 3, padding = 1)
 
+        self.conv4 = ConvRelu(in_channels = 64, out_channels = 1, kernel_size = 3, padding = 1)
+
     def forward(self, x, down_sampling_feature):
 
         x1 = self.deconv1(x)
@@ -269,13 +271,15 @@ class decoder(nn.Module):
         x3 = torch.cat((x3, down_sampling_feature[-3]) , dim = 1)
         x3 = self.conv3(x3)
 
-        return x3
+        x4 = self.conv4(x3)
+
+        return x4
 
 
 class COVID_seg(nn.Module):
     def __init__(self, in_channels, out_channels, final_activation = 'softmax'):
         super(COVID_seg, self).__init__()
-        self.encoder = encoder(in_channels=1)
+        self.encoder = encoder(in_channels=in_channels)
         self.decoder = decoder(out_channels=out_channels)
 
         if final_activation == 'sigmoid':
@@ -314,3 +318,12 @@ if __name__ == '__main__':
     model.cuda()
 
     x_test = model(inputs)
+
+    # from torchsummary import summary
+
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # "cuda" if torch.cuda.is_available() else "cpu"
+
+    # model = COVID_seg(1, 1)
+    # model = model.to(device)
+    # summary(model, input_size=(1, 16, 128, 128))
