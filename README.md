@@ -10,7 +10,7 @@ Lab 2: EEGNet
 - Original paper: https://iopscience.iop.org/article/10.1088/1741-2552/aace8c
 
 Lab 3: COVID19 infection region segmentation
-- Implementation of 'COVID-19 Chest CT Image Segmentation Network by Multi-Scale Fusion and Enhancement Operations'
+- Implementation of 'COVID-SegNet'
 - Original paper: https://ieeexplore.ieee.org/abstract/document/9345435
 
 BRAVE-NET segmentation model ["BraveNet.ipynb"](https://github.com/xup6YJ/Medical-Image-Analysis/blob/main/Model_arch/BraveNet.ipynb) in Pytorch vision.
