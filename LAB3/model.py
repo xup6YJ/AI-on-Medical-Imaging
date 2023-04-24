@@ -196,8 +196,7 @@ class encoder(nn.Module):
 
         return x4, down_sampling_feature
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-"cuda" if torch.cuda.is_available() else "cpu"
+
 
 
 # if __name__ == '__main__':
@@ -226,7 +225,7 @@ class deconvblock(nn.Module):
         )
 
     def forward(self, x):
-        print('Deconv shape: ', self.deconv(x).shape)
+        # print('Deconv shape: ', self.deconv(x).shape)
         return(self.deconv(x))
     
 
@@ -256,14 +255,14 @@ class decoder(nn.Module):
     def forward(self, x, down_sampling_feature):
 
         x1 = self.deconv1(x)
-        print('x1.shape: ', x1.shape)
+        # print('x1.shape: ', x1.shape)
         x1 = torch.cat((x1, down_sampling_feature[-1]) , dim = 1)
-        print('x1 concat shape: ', x1.shape)
+        # print('x1 concat shape: ', x1.shape)
         x1 = self.conv1(x1)
 
         x2 = self.deconv2(x1)
         x2 = torch.cat((x2, down_sampling_feature[-2]) , dim = 1)
-        print('x2 concat shape: ', x2.shape)
+        # print('x2 concat shape: ', x2.shape)
         x2 = self.conv2(x2)
 
         x3 = self.deconv3(x2)
@@ -278,7 +277,7 @@ class COVID_seg(nn.Module):
         super(COVID_seg, self).__init__()
         self.encoder = encoder(in_channels=1)
         self.decoder = decoder(out_channels=out_channels)
-        
+
         if final_activation == 'sigmoid':
             self.f_activation = nn.Sigmoid()
         else:
@@ -303,6 +302,8 @@ class COVID_seg(nn.Module):
 
 #     x_test = deconv1(inputs)
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+"cuda" if torch.cuda.is_available() else "cpu"
 
 if __name__ == '__main__':
     # inputs = torch.randn(1, 512, 16, 128, 128)
