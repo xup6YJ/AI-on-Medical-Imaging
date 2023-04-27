@@ -1,127 +1,192 @@
 
 
 
-import glob
-import pandas  as pd
-import numpy   as np
-import nibabel as nib
-import matplotlib.pyplot as plt
+import pandas as pd
+import time
+import re
+import numpy as np
+import scipy.io
+import requests
+import math
+from glob import glob
+
 import os
+from os import listdir
+from os.path import isfile, isdir, join, splitext
 from tqdm import tqdm
+import copy
+import matplotlib.pyplot as plt
+from sklearn.metrics import classification_report, roc_auc_score, cohen_kappa_score
+from sklearn.model_selection import StratifiedGroupKFold, KFold
+from datetime import datetime
+import glob
+import shutil
+import random
+from torch.optim.swa_utils import *
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+seed = 106
+np.random.seed(seed)
+
+'''
+Train infection ratio 0.009125585644785437 (14)
+Valid infection ratio 0.00891329907723825 (2)
+Test infection ratio 0.009681017562080525 (4)
+'''
+
+# Let's say we want to split the data in 80:10:10 for train:valid:test dataset
+df = pd.read_csv('/home/yclin/Documents/MedAI/Final/archive/input/covid19-ct-scans/metadata_2.csv')
+
+train_size=0.8
+
+X = df.drop(columns = ['infection_mask']).copy()
+y = df['infection_mask']
+y.columns = ['infection_mask']
+# In the first step we will split the data in training and remaining dataset
+X_train, X_test, y_train, y_test = train_test_split(X,y, train_size=train_size)
+
+# Now since we want the valid and test size to be equal (10% each of overall data). 
+# we have to define valid_size=0.5 (that is 50% of remaining data)
+ac_train_size = 0.9
+X_train, X_valid, y_train, y_valid = train_test_split(X_train,y_train, train_size=ac_train_size)
+
+print(X_train.shape), print(y_train.shape)
+print('Train infection ratio', X_train['Ratio'].mean())
+print(X_valid.shape), print(y_valid.shape)
+print('Valid infection ratio', X_valid['Ratio'].mean())
+print(X_test.shape), print(y_test.shape)
+print('Test infection ratio', X_test['Ratio'].mean())
 
 
-#Open folder in input
-def read_nii(filepath):
-    '''
-    Reads .nii file and returns pixel array
-    '''
-    ct_scan = nib.load(filepath)
-    array   = ct_scan.get_fdata()
-    # array   = np.rot90(np.array(array))
-    affine = ct_scan.affine
-    header = ct_scan.header
-    return(array, affine, header)
 
-def padding(array, xx, yy):
-    """
-    :param array: numpy array
-    :param xx: desired height
-    :param yy: desirex width
-    :return: padded array
-    """
+cur_path = os.getcwd()
+data_path = os.path.join(cur_path, 'data')
+ct_path = os.path.join(data_path, 'CT_data')
+lung_path = os.path.join(data_path, 'lung_data')
+infec_path = os.path.join(data_path, 'infection_data')
 
-    h = array.shape[0]
-    w = array.shape[1]
-    z = array.shape[2]
+train_path = os.path.join(data_path, 'train')
+if not os.path.exists(train_path):
+    os.makedirs(train_path)
+valid_path = os.path.join(data_path, 'valid')
+if not os.path.exists(valid_path):
+    os.makedirs(valid_path)
+test_path = os.path.join(data_path, 'test')
+if not os.path.exists(test_path):
+    os.makedirs(test_path)
 
-    a = (xx - h) // 2
-    aa = xx - a - h
+train_ct_path = os.path.join(train_path, 'CT')
+if not os.path.exists(train_ct_path):
+    os.makedirs(train_ct_path)
+train_lung_path = os.path.join(train_path, 'Lung')
+if not os.path.exists(train_lung_path):
+    os.makedirs(train_lung_path)
+train_infec_path = os.path.join(train_path, 'Infection')
+if not os.path.exists(train_infec_path):
+    os.makedirs(train_infec_path)
 
-    b = (yy - w) // 2
-    bb = yy - b - w
+valid_ct_path = os.path.join(valid_path, 'CT')
+if not os.path.exists(valid_ct_path):
+    os.makedirs(valid_ct_path)
+valid_lung_path = os.path.join(valid_path, 'Lung')
+if not os.path.exists(valid_lung_path):
+    os.makedirs(valid_lung_path)
+valid_infec_path = os.path.join(valid_path, 'Infection')
+if not os.path.exists(valid_infec_path):
+    os.makedirs(valid_infec_path)
 
-    return np.pad(array, pad_width=((a, aa), (b, bb), (0, 0)), mode='constant')
+test_ct_path = os.path.join(test_path, 'CT')
+if not os.path.exists(test_ct_path):
+    os.makedirs(test_ct_path)
+test_lung_path = os.path.join(test_path, 'Lung')
+if not os.path.exists(test_lung_path):
+    os.makedirs(test_lung_path)
+test_infec_path = os.path.join(test_path, 'Infection')
+if not os.path.exists(test_infec_path):
+    os.makedirs(test_infec_path)
 
+#Train
+print('Copying training data')
+indexes = X_train.index
+for ind in indexes:
+    #CT
+    name = 'p_' + os.path.split(X_train.loc[ind,'ct_scan'])[-1]
+    path = os.path.join(ct_path, name)
+    #Copy
+    source = path
+    destination = os.path.join(train_ct_path, name)
+    dest = shutil.copyfile(source, destination)
 
-def calculate_slice(label):
-    # label = np.concatenate(self.label_list)
-    label = label.flatten()
-    normal_data_num = len( np.argwhere(label == 0))
-    detect_data_num = len( np.argwhere(label == 1))
-    data_num = normal_data_num + detect_data_num
-    affect_ratio = float(detect_data_num) / float(data_num)
-    # repr_str = "TorchDataset\n\t%d volumes,\t%d ROIs\n\t%d normal ROIs,\t%d defect ROIs (%.2f%% affected)" %(len(self),data_num,normal_data_num,detect_data_num,affect_ratio*100)
-    repr_str = "COVIDDataset\n\t volumes,\t%d ROIs\n\t%d normal ROIs,\t%d defect ROIs (%.2f%% affected)" %(data_num,normal_data_num,detect_data_num,affect_ratio*100)
-    print(repr_str)
-    
-    return affect_ratio
+    #Lung
+    name = 'p_' + os.path.split(X_train.loc[ind,'lung_mask'])[-1]
+    path = os.path.join(lung_path, name)
+    #Copy
+    source = path
+    destination = os.path.join(train_lung_path, name)
+    dest = shutil.copyfile(source, destination)
 
+    #Infection
+    name = 'p_' + os.path.split(y_train.loc[ind])[-1]
+    path = os.path.join(infec_path, name)
+    #Copy
+    source = path
+    destination = os.path.join(train_infec_path, name)
+    dest = shutil.copyfile(source, destination)
 
-if __name__ == '__main__':
+#Validation
+print('Copying validation data')
+indexes = X_valid.index
+for ind in indexes:
+    #CT
+    name = 'p_' + os.path.split(X_valid.loc[ind,'ct_scan'])[-1]
+    path = os.path.join(ct_path, name)
+    #Copy
+    source = path
+    destination = os.path.join(valid_ct_path, name)
+    dest = shutil.copyfile(source, destination)
 
-    cur_path = os.getcwd()
-    data_path = os.path.join(cur_path, 'data')
-    if not os.path.exists(data_path):
-        os.makedirs(data_path)
+    #Lung
+    name = 'p_' + os.path.split(X_valid.loc[ind,'lung_mask'])[-1]
+    path = os.path.join(lung_path, name)
+    #Copy
+    source = path
+    destination = os.path.join(valid_lung_path, name)
+    dest = shutil.copyfile(source, destination)
 
-    ct_path = os.path.join(data_path, 'CT_data')
-    if not os.path.exists(ct_path):
-        os.makedirs(ct_path)
-
-    lung_path = os.path.join(data_path, 'lung_data')
-    if not os.path.exists(lung_path):
-        os.makedirs(lung_path)
-
-    infec_path = os.path.join(data_path, 'infection_data')
-    if not os.path.exists(infec_path):
-        os.makedirs(infec_path)
-
-    # raw_data = pd.read_csv('/home/yclin/Documents/MedAI/Final/archive/metadata.csv')   
-    raw_data = pd.read_csv('../input/covid19-ct-scans/metadata_shape.csv')
-    raw_data.sample(5)
-
-    # Read sample
-    shape_list = []
-    ratio_list = []
-    for i in tqdm(range(len(raw_data))):
-        sample_ct, affine, header   = read_nii(raw_data.loc[i,'ct_scan'])
-        sample_lung, _, _ = read_nii(raw_data.loc[i,'lung_mask'])
-        sample_infe, _, _ = read_nii(raw_data.loc[i,'infection_mask'])
-        # sample_all  = read_nii(raw_data.loc[i,'lung_and_infection_mask'])
-
-        #Examine Shape
-        # shape_list.append(sample_ct.shape)
-        # sample_ct.shape
-
-        shape = sample_ct.shape
-        shape_h_w = shape[:2]
-
-        if shape_h_w != (630, 630):
-            sample_ct = padding(sample_ct, 630, 630)  #resize h and w only do padding
-            sample_lung = padding(sample_lung, 630, 630)
-            sample_infe = padding(sample_infe, 630, 630)
-
-        ratio = calculate_slice(sample_infe)
-        ratio_list.append(ratio)
-
-        #Save data
-        ct_nii = nib.Nifti1Image(sample_ct*sample_lung, affine, header)
-        lung_nii = nib.Nifti1Image(sample_lung, affine, header)
-        infe_nii = nib.Nifti1Image(sample_infe, affine, header)
-
-        name = 'p_' + os.path.split(raw_data.loc[i,'ct_scan'])[-1]
-        path = os.path.join(ct_path, name)
-        nib.save(ct_nii, path)
-
-        name = 'p_' + os.path.split(raw_data.loc[i,'lung_mask'])[-1]
-        path = os.path.join(lung_path, name)
-        nib.save(lung_nii, path)
-
-        name = 'p_' + os.path.split(raw_data.loc[i,'infection_mask'])[-1]
-        path = os.path.join(infec_path, name)
-        nib.save(infe_nii, path)
+    #Infection
+    name = 'p_' + os.path.split(y_valid.loc[ind])[-1]
+    path = os.path.join(infec_path, name)
+    #Copy
+    source = path
+    destination = os.path.join(valid_infec_path, name)
+    dest = shutil.copyfile(source, destination)
 
 
-# raw_data['Shape'] = shape_list
-# raw_data['Ratio'] = ratio_list
-# raw_data.to_csv('../input/covid19-ct-scans/metadata_2.csv', index = False)
+#Test
+print('Copying testing data')
+indexes = X_test.index
+for ind in indexes:
+    #CT
+    name = 'p_' + os.path.split(X_test.loc[ind,'ct_scan'])[-1]
+    path = os.path.join(ct_path, name)
+    #Copy
+    source = path
+    destination = os.path.join(test_ct_path, name)
+    dest = shutil.copyfile(source, destination)
+
+    #Lung
+    name = 'p_' + os.path.split(X_test.loc[ind,'lung_mask'])[-1]
+    path = os.path.join(lung_path, name)
+    #Copy
+    source = path
+    destination = os.path.join(test_lung_path, name)
+    dest = shutil.copyfile(source, destination)
+
+    #Infection
+    name = 'p_' + os.path.split(y_test.loc[ind])[-1]
+    path = os.path.join(infec_path, name)
+    #Copy
+    source = path
+    destination = os.path.join(test_infec_path, name)
+    dest = shutil.copyfile(source, destination)
