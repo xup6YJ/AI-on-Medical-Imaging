@@ -26,12 +26,14 @@ from torch.optim.swa_utils import *
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-seed = 106
+seed = 130
 np.random.seed(seed)
-
+# Train infection ratio 0.012488580863394551
+# Valid infection ratio 0.00897552008644685
+# Test infection ratio 0.007410284706509351
 
 # Let's say we want to split the data in 80:10:10 for train:valid:test dataset
-df = pd.read_csv('/home/yclin/Documents/MedAI/Final/archive/input/covid19-ct-scans/metadata_2.csv')
+df = pd.read_csv('/media/yclin/3TBNAS/Medical-AI/LAB3/metadata_3.csv')
 
 train_size=0.8
 
@@ -46,20 +48,20 @@ X_train, X_test, y_train, y_test = train_test_split(X,y, train_size=train_size)
 ac_train_size = 0.9
 X_train, X_valid, y_train, y_valid = train_test_split(X_train,y_train, train_size=ac_train_size)
 
-print(X_train.shape), print(y_train.shape)
+# print(X_train.shape), print(y_train.shape)
 print('Train infection ratio', X_train['Ratio'].mean())
-print(X_valid.shape), print(y_valid.shape)
+# print(X_valid.shape), print(y_valid.shape)
 print('Valid infection ratio', X_valid['Ratio'].mean())
-print(X_test.shape), print(y_test.shape)
+# print(X_test.shape), print(y_test.shape)
 print('Test infection ratio', X_test['Ratio'].mean())
 
 
 
 cur_path = os.getcwd()
 data_path = os.path.join(cur_path, 'data')
-ct_path = os.path.join(data_path, 'CT_data')
-lung_path = os.path.join(data_path, 'lung_data')
-infec_path = os.path.join(data_path, 'infection_data')
+ct_path = os.path.join(data_path, 'CT')
+lung_path = os.path.join(data_path, 'Lung')
+infec_path = os.path.join(data_path, 'Infection')
 
 train_path = os.path.join(data_path, 'train')
 if not os.path.exists(train_path):
