@@ -138,7 +138,7 @@ class PASPP_block(nn.Module):
         o2 = self.conv2(xc34)
 
         output_tensor = self.conv3(torch.cat((o1, o2), dim = 1)) #Check
-        print ('PASPP block', 'output shape: ', output_tensor.shape) 
+        # print ('PASPP block', 'output shape: ', output_tensor.shape) 
 
         return(output_tensor) #element-wise multiplication
 
@@ -175,24 +175,24 @@ class encoder(nn.Module):
 
     def forward(self, x):
         down_sampling_feature = []
-        print('Input shape: ', x.shape)
+        # print('Input shape: ', x.shape)
         x1 =self.l1(x)
         down_sampling_feature.append(x1)
-        print('l1 output shape: ', x1.shape)
+        # print('l1 output shape: ', x1.shape)
 
         x1 = nn.MaxPool3d(kernel_size=2, stride=2, padding=0)(x1)
         x2 = self.l2(x1)
         down_sampling_feature.append(x2)
-        print('l2 output shape: ', x2.shape)
+        # print('l2 output shape: ', x2.shape)
 
         x2 = nn.MaxPool3d(kernel_size=2, stride=2, padding=0)(x2)
         x3 = self.l3(x2)
         down_sampling_feature.append(x3)
-        print('l3 output shape: ', x3.shape)
+        # print('l3 output shape: ', x3.shape)
 
         x3 = nn.MaxPool3d(kernel_size=2, stride=2, padding=0)(x3)
         x4 = self.l4(x3)
-        print('l4 output shape: ', x4.shape)
+        # print('l4 output shape: ', x4.shape)
 
         return x4, down_sampling_feature
 
@@ -277,7 +277,7 @@ class decoder(nn.Module):
 
 
 class COVID_seg(nn.Module):
-    def __init__(self, in_channels, out_channels, final_activation = 'softmax'):
+    def __init__(self, in_channels = 1, out_channels = 1, final_activation = 'softmax'):
         super(COVID_seg, self).__init__()
         self.encoder = encoder(in_channels=in_channels)
         self.decoder = decoder(out_channels=out_channels)
@@ -292,7 +292,7 @@ class COVID_seg(nn.Module):
         x = self.decoder(x, d_features)
         output = self.f_activation(x)
 
-        print("Final output shape: ", output.shape)
+        # print("Final output shape: ", output.shape)
 
         return output
     

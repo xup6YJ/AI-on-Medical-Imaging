@@ -152,7 +152,8 @@ def train3d(args):
     model = COVID_seg()
     model = model.to(device)
 
-    criterion = DiceLoss()
+    # criterion = DiceLoss()
+    criterion = DiceBCELoss()
 
     # optimizer = optim.Adam(model.parameters(), lr=args.lr)
     optimizer = optim.RMSprop(model.parameters(), lr=args.lr, alpha=0.99, eps=1e-08, weight_decay=1e-4, momentum=0.6, centered=False, foreach=None)

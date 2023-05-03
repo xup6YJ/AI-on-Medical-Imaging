@@ -210,7 +210,7 @@ class DiceBCELoss(nn.Module):
         dice = (2.*intersection + smooth)/(inputs.sum(1) + targets.sum(1) + smooth) 
         dice_loss = 1 - dice.sum()/num
 
-        loss_final = 3*BCE + dice_loss
+        loss_final = 0.5*BCE + dice_loss
         return loss_final
 
 class DiceScore(nn.Module):

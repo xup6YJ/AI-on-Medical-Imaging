@@ -77,7 +77,7 @@ if __name__ == '__main__':
         os.makedirs(infec_path) 
 
     # raw_data = pd.read_csv('/home/yclin/Documents/MedAI/Final/archive/metadata.csv')   
-    raw_data = pd.read_csv('D:\File_X\PHD\Lesson\MedAI\metadata_2.csv')
+    raw_data = pd.read_csv('/media/yclin/3TBNAS/Medical-AI/LAB3/metadata_2.csv')
     # raw_data.sample(5)
 
     # Read sample
@@ -119,23 +119,23 @@ if __name__ == '__main__':
         ratio_list.append(ratio)
 
         #Save data
-        ct_nii = nib.Nifti1Image(ct_stack, affine, header)
-        lung_nii = nib.Nifti1Image(lung_stack, affine, header)
-        infe_nii = nib.Nifti1Image(infec_stack, affine, header)
+        # ct_nii = nib.Nifti1Image(ct_stack, affine, header)
+        # lung_nii = nib.Nifti1Image(lung_stack, affine, header)
+        # infe_nii = nib.Nifti1Image(infec_stack, affine, header)
 
-        name = 'p_' + os.path.split(raw_data.loc[i,'ct_scan'])[-1]
-        path = os.path.join(ct_path, name)
-        nib.save(ct_nii, path)
+        # name = 'p_' + os.path.split(raw_data.loc[i,'ct_scan'])[-1]
+        # path = os.path.join(ct_path, name)
+        # nib.save(ct_nii, path)
 
-        name = 'p_' + os.path.split(raw_data.loc[i,'lung_mask'])[-1]
-        path = os.path.join(lung_path, name)
-        nib.save(lung_nii, path)
+        # name = 'p_' + os.path.split(raw_data.loc[i,'lung_mask'])[-1]
+        # path = os.path.join(lung_path, name)
+        # nib.save(lung_nii, path)
 
-        name = 'p_' + os.path.split(raw_data.loc[i,'infection_mask'])[-1]
-        path = os.path.join(infec_path, name)
-        nib.save(infe_nii, path)
+        # name = 'p_' + os.path.split(raw_data.loc[i,'infection_mask'])[-1]
+        # path = os.path.join(infec_path, name)
+        # nib.save(infe_nii, path)
 
 
-# raw_data['Shape'] = shape_list
-# raw_data['Ratio'] = ratio_list
-# raw_data.to_csv('../input/covid19-ct-scans/metadata_2.csv', index = False)
+raw_data['Shape'] = shape_list
+raw_data['Ratio'] = ratio_list
+raw_data.to_csv('/media/yclin/3TBNAS/Medical-AI/LAB3/metadata_3.csv', index = False)
