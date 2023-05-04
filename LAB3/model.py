@@ -87,7 +87,8 @@ class FVBlock(nn.Module):
         self.in_channels = in_channels
         self.channel_att = SEBlock(self.in_channels, reduction_ratio=2)
         self.spatial_att = Spatial_block(self.in_channels)
-        self.conv1 = ConvRelu(in_channels = self.in_channels, out_channels = self.in_channels, kernel_size = 1, padding = 0)
+        # self.conv1 = ConvRelu(in_channels = self.in_channels, out_channels = self.in_channels, kernel_size = 1, padding = 0)
+        self.conv1 = nn.Conv3d(in_channels=self.in_channels, out_channels=self.in_channels, kernel_size=1, padding=0)
         self.conv2 = ConvRelu(in_channels = int(self.in_channels*3), out_channels = self.in_channels, kernel_size = 3, padding = 1)
 
     def forward(self, x):
