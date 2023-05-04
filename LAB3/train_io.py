@@ -17,7 +17,7 @@ import torchio as tio
 
 from loss import *
 from utils import *
-from model import *
+from model_2 import *
 from performance import measurement
 from weights_initalization import *
 from dset_io import CTDataset, SampleProbabilityMap, CTTestDataset
@@ -202,7 +202,7 @@ def train3d(args):
 
     # learning rate scheduler (if any)
     if args.reduce_lr_on_plateau:
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.9, patience=40)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.9, patience=20)
     elif args.exponential_lr:
         scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.995)
     elif args.step_lr:
@@ -243,6 +243,7 @@ def train3d(args):
 
     #Training
     for epoch in epoch_pbar:
+        print('-'*10, ' Epoch ', epoch, '-'*10)
         if args.continue_training and epoch<args.continue_epoch:
             continue
 
@@ -338,7 +339,10 @@ def train3d(args):
         if args.cgm:
             logger.add_scalar('train/cgm_loss', epoch_measure['cgm_loss'], epoch)
 
-        measure_val = evaluate3d(model, criterion, val_dataset, (256, 256, 8), (0, 0, 2), 'val', args.batch_size, args.test_time_aug, args.bd_loss_weight)
+        measure_val = evaluate3d(model, 
+                                 criterion, val_dataset, (256, 256, 8), (0, 0, 2), 'val', 
+                                 args.batch_size, args.test_time_aug, args.bd_loss_weight)
+        
         for scalar in ['acc', 'iou', 'tpr', 'tnr', 'dsc', 'ppv', 'loss', 'seg_loss', 'bd_loss']:
             logger.add_scalar(f'val/{scalar}', measure_val[scalar], epoch)
 
@@ -350,11 +354,11 @@ def train3d(args):
         # save best model weight (epoch/ val loss)
         current_valid_loss = measure_val['loss']
         print(f"\ncurrent_valid_loss: {current_valid_loss:.4f}")
-        print(f"\nBest validation loss: {best_valid_loss:.4f}")
+        print(f"Best validation loss: {best_valid_loss:.4f}")
         if current_valid_loss < best_valid_loss:
             best_valid_loss = current_valid_loss
-            print(f"\ncurrent_valid_loss < Best validation loss")
-            print(f"\nSaving best model for epoch: {epoch}\n")
+            print(f"current_valid_loss < Best validation loss")
+            print(f"Saving best model for epoch: {epoch}\n")
             torch.save({
                 'epoch': epoch,
                 'model': model.state_dict(),
@@ -362,8 +366,9 @@ def train3d(args):
                 'loss': criterion,
                 }, 
                 os.path.join(cpt_dir, f'cv{args.cv}_epoch{epoch}_batch{batch_done}_e{epoch}.cpt'))
+        print("Save path: ", os.path.join(cpt_dir, f'cv{args.cv}_epoch{epoch}_batch{batch_done}_e{epoch}.cpt')) 
 
-        epoch_pbar.set_description(f'[train] [e:{epoch}/{args.num_epochs}] avg. loss: {epoch_measure["loss"]:.4f}')
+        epoch_pbar.set_description(f'[train] [e:{epoch}/{args.num_epochs}] avg.loss: {epoch_measure["loss"]:.4f} avg.sensitivity: {epoch_measure["tpr"]:.4f} avg.acc: {epoch_measure["acc"]:.4f} avg.dsc: {epoch_measure["dsc"]:.4f}')
 
 
 def evaluate3d(model, criterion, dataset, patch_size, patch_overlap, tqdm_desc, batch_size=8, tta=False, bd_loss_weight=0.2):
@@ -502,6 +507,7 @@ if __name__ == '__main__':
     parser.add_argument('--deconv', action='store_true', default=False)
     parser.add_argument('--weight_init', type=str, default='kaiming')
     parser.add_argument('--cr_cpt_path', type=str)
+    parser.add_argument('--deep_supervision', action='store_true', default=False)
 
     # for UNet3P
     parser.add_argument('--reduce_ch', type=int, default=64)
