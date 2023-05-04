@@ -1,4 +1,5 @@
 
+ 
 
 import torch.nn as nn
 import torchvision.models
@@ -87,8 +88,13 @@ class FVBlock(nn.Module):
         self.in_channels = in_channels
         self.channel_att = SEBlock(self.in_channels, reduction_ratio=2)
         self.spatial_att = Spatial_block(self.in_channels)
+<<<<<<< HEAD
         # self.conv1 = ConvRelu(in_channels = self.in_channels, out_channels = self.in_channels, kernel_size = 1, padding = 0)
         self.conv1 = nn.Conv3d(in_channels=self.in_channels, out_channels=self.in_channels, kernel_size=1, padding=0)
+=======
+        self.conv1 = nn.Conv3d(in_channels=self.in_channels, out_channels=self.in_channels, kernel_size=1, padding=0)
+        # self.conv1 = ConvRelu(in_channels = self.in_channels, out_channels = self.in_channels, kernel_size = 1, padding = 0)
+>>>>>>> 27376ab (train_v1 conv1 update)
         self.conv2 = ConvRelu(in_channels = int(self.in_channels*3), out_channels = self.in_channels, kernel_size = 3, padding = 1)
 
     def forward(self, x):
@@ -278,7 +284,7 @@ class decoder(nn.Module):
 
 
 class COVID_seg(nn.Module):
-    def __init__(self, in_channels = 1, out_channels = 1, final_activation = 'softmax'):
+    def __init__(self, in_channels = 1, out_channels = 1, final_activation = 'sigmoid'):
         super(COVID_seg, self).__init__()
         self.encoder = encoder(in_channels=in_channels)
         self.decoder = decoder(out_channels=out_channels)
