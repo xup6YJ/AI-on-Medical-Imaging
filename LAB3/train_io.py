@@ -64,7 +64,10 @@ def test(model, subj, patch_size, patch_overlap, batch_size=8):
             # else:
             #     _, outputs = model(images)
 
-            outputs = model(images)
+            if not args.deep_supervision:
+                outputs = model(images)
+            else:
+                output1, output2, outputs = model(images)
 
             locations = patches_batch[tio.LOCATION]
             aggregator.add_batch(outputs, locations)
@@ -159,7 +162,8 @@ def train3d(args):
     # model creation
     # model = create_model(args)
     # model = nn.DataParallel(model, device_ids=[0])
-    model = COVID_seg()
+
+    model = eval(f'{args.model}()')
     model = model.to(device)
 
     # loss function
@@ -243,7 +247,7 @@ def train3d(args):
 
     #Training
     for epoch in epoch_pbar:
-        print('-'*10, ' Epoch ', epoch, '-'*10)
+        print('\n-'*10, ' Epoch ', epoch, '-'*10)
         if args.continue_training and epoch<args.continue_epoch:
             continue
 
@@ -283,10 +287,21 @@ def train3d(args):
             # else:
             #     pred_has_roi, outputs = model(images)
 
-            outputs = model(images)
+            if not args.deep_supervision:
+                outputs = model(images)
+            else:
+                output1, output2, outputs = model(images)
+
 
             # segmentation loss, boundary loss, multi-task loss
-            seg_loss = criterion(outputs, masks)
+            if not args.deep_supervision:
+                seg_loss = criterion(outputs, masks)
+            else:
+                loss1 = criterion(output1, masks)
+                loss2 = criterion(output2, masks)
+                loss3 = criterion(outputs, masks)
+                seg_loss = 0.25*loss1 + 0.25*loss2 + 0.5*loss3
+
             loss = seg_loss
             if args.bd_loss:
                 bd_loss = boundary_loss(outputs, data['dist_map'][tio.DATA].to(device))
